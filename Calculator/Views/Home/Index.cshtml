@@ -1,0 +1,104 @@
+﻿@using DataAccess
+@using Calculator.Models
+@using Calculator.Controllers
+@model HomeModel
+
+@{
+    const string ISK_FORMAT = "###,##0.00 Ƶ";
+    ViewBag.Title = "Home Page";
+}
+
+@section scripts
+{
+    <script>
+
+    </script>
+}
+
+<div class="jumbotron">
+    T2 Production Calculator
+</div>
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item active">
+        <a class="nav-item nav-link active" id="nav-production-tab" data-toggle="tab" href="#nav-production" role="tab" aria-controls="nav-production" aria-selected="true" aria-expanded="true">Production</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-item nav-link" id="nav-shopping-tab" data-toggle="tab" href="#nav-shopping" role="tab" aria-controls="nav-shopping" aria-selected="false">Shopping</a>
+    </li>
+</ul>
+
+<div class="tab-content" id="nav-tabContent">
+    <div class="tab-pane fade show active" id="nav-production" role="tabpanel" aria-labelledby="nav-home-tab">
+        <div class="row">
+            @foreach (ProductModel prod in this.Model.Products)
+            {
+                string css = (prod.IsProfitable) ? "green" : "red";
+                <div class="col-12">
+                    <div class="card" data-typeid="@prod.TypeId">
+
+                        <div class="card-header @css">
+                            <input type="hidden" class="item-type" value="@prod.TypeId" />
+                            <span>@prod.Name - @prod.Price.ToString(ISK_FORMAT)</span>
+                            <span class="pull-right"><a href="@Url.Action(nameof(HomeController.RefreshProduct),"Home",new { productId = prod.ProductId })"><i class="fa fa-refresh"></i></a></span>
+                        </div>
+                        <div class="card-body">
+                            <div>Output Per Run: @prod.QuantityPerProductionRun</div>
+                            <div>Cost Per Run: @prod.Cost.ToString(ISK_FORMAT)</div>
+                            <div>Profit Per Run: @prod.ProfitPerRun.ToString(ISK_FORMAT)</div>
+                            <div>Weekly Quantity: @prod.ProductionCountPerWeek.ToString("###,##0")</div>
+                            <div>Weekly Profit: @(prod.ProfitPerWeek.ToString(ISK_FORMAT))</div>
+
+                            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#list-@prod.TypeId" aria-expanded="false" aria-controls="collapseExample">
+                                Shopping List
+                            </button>
+
+                            <div class="collapse" id="list-@prod.TypeId">
+                                <table>
+                                    <tr>
+                                        <th>Ingredient</th>
+                                        <th class="text-right">Quantity</th>
+                                        <th class="text-right">Cost</th>
+                                        <th class="text-right">Sub-total</th>
+                                    </tr>
+                                    @foreach (ShoppingListItem sli in prod.Ingredients)
+                                    {
+                                        <tr>
+                                            <td>@sli.Name</td>
+                                            <td class="text-right">@sli.Quantity</td>
+                                            <td class="text-right">@sli.PriceEach.ToString(ISK_FORMAT)</td>
+                                            <td class="text-right">@sli.PriceTotal.ToString(ISK_FORMAT)</td>
+                                        </tr>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="nav-shopping" role="tabpanel" aria-labelledby="nav-profile-tab">
+        <div class="row">
+            <div class="col-5">Total:</div>
+            <div class="col-5 total-price">@this.Model.ShoppingList.Sum(t => t.PriceTotal).ToString(ISK_FORMAT)</div>
+            @foreach (ShoppingListItem item in this.Model.ShoppingList)
+            {
+                <div class="col-12">
+                    <div class="card" data-typeid="@item.TypeId">
+                        <div class="card-header">
+                            <input type="hidden" class="item-type" value="@item.TypeId" />
+                            <span class="item-name">@item.Name</span>
+                            <span class="item-price"> - @item.PriceEach.ToString(ISK_FORMAT)</span>
+                        </div>
+                        <div class="card-body">
+                            Weekly Quantity - <span class="item-qty">@item.Quantity.ToString("###,##0")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
